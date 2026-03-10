@@ -1,0 +1,36 @@
+{
+  "name": "nueva-carpeta",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.2.3",
+    "drizzle-kit": "^0.31.9",
+    "esbuild": "^0.27.3",
+    "npm-run-all": "^4.1.5"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@cerebras/cerebras_cloud_sdk": "^1.64.1",
+    "debug": "^4.4.0",
+    "drizzle-orm": "^0.45.1",
+    "hono": "^4.11.9",
+    "iconv-lite": "^0.7.2",
+    "ms": "^2.1.3",
+    "mysql2": "^3.17.2"
+  },
+  "scripts": {
+    "dev": "bun --watch index.ts",
+    "dev:back": "bun --watch index.ts",
+    "dev:front": "cd frontend && bun dev",
+    "dev:full": "npm-run-all --parallel dev:back dev:front",
+    "build:front": "cd frontend && bun run build",
+    "db:generate": "bunx drizzle-kit generate",
+    "db:push": "bunx drizzle-kit push",
+    "db:studio": "bunx drizzle-kit studio",
+    "start": "bun index.ts"
+  }
+}

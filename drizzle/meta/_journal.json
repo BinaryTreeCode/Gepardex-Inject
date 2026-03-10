@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1773108127338,
+      "tag": "0000_petite_amphibian",
+      "breakpoints": true
+    }
+  ]
+}
