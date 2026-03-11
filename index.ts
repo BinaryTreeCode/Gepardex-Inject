@@ -15,8 +15,8 @@ app.route('/api', chat);
 if (!process.env.VERCEL) {
     // Solo cargamos serveStatic si no estamos en Vercel
     const { serveStatic } = await import('hono/bun');
-    app.use('/*', serveStatic({ root: './frontend/dist' }));
-    app.get('/*', serveStatic({ path: './frontend/dist/index.html' }));
+    app.use('/*', serveStatic({ root: './public' }));
+    app.get('/*', serveStatic({ path: './public/index.html' }));
 }
 
 if (process.env.BUN_ENV !== 'production' && !process.env.VERCEL) {
