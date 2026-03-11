@@ -1,10 +1,16 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 // Quitamos la importación estática de Bun para evitar errores en Vercel
 import auth from './src/routes/auth.js';
 import chat from './src/routes/chat.js';
 import { authMiddleware } from './src/middleware.js';
 
 const app = new Hono<{ Variables: { userId: number | null } }>();
+
+app.use('/api/*', cors({
+    origin: (origin: string | undefined) => origin ?? '*',
+    credentials: true,
+}));
 const port = 3000;
 
 app.get('/api/ping', (c) => c.json({ status: 'ok', message: 'Hono is alive' }));
