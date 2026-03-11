@@ -2,52 +2,41 @@
 
 
 
+import Cerebras from '@cerebras/cerebras_cloud_sdk';
+
+const client = new Cerebras({
+    apiKey: process.env.CEREBRAS_API_KEY,
+});
 
 export type ChatMessage = { role: "user" | "assistant" | "system"; content: string };
 
-async function callCerebras(messages: ChatMessage[], model: string, maxTokens: number, temperature: number) {
-    const apiKey = process.env.CEREBRAS_API_KEY;
-    if (!apiKey) {
-        throw new Error("CEREBRAS_API_KEY no está configurada");
-    }
-
-    const response = await fetch("https://api.cerebras.ai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-        },
-        body: JSON.stringify({
-            messages,
-            model,
-            max_completion_tokens: maxTokens,
-            temperature,
-            top_p: 1,
-            stream: false,
-        }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Cerebras API error (${response.status}): ${errorText}`);
-    }
-
-    const data = await response.json() as any;
-    return data.choices?.[0]?.message?.content || "";
-}
-
+/**
+ * Obtiene la respuesta de Cerebras usando el SDK oficial.
+ * El SDK maneja automáticamente las cabeceras para evitar bloqueos de Cloudflare
+ * y es compatible con Vercel Edge Runtime.
+ */
 export async function getCerebrasResponse(messages: ChatMessage[], model: string) {
     try {
-        if (model === "llama") {
-            return await callCerebras(messages, 'llama3.1-8b', 2048, 0.2);
-        } else {
-            // Default: gpt (gpt-oss-120b)
-            return await callCerebras(messages, 'gpt-oss-120b', 32768, 1);
-        }
+        const isLlama = model === "llama";
+        const modelName = isLlama ? "llama3.1-8b" : "gpt-oss-120b";
+        const maxTokens = isLlama ? 2048 : 32768;
+        const temperature = isLlama ? 0.2 : 1;
+
+        const response = await client.chat.completions.create({
+            messages: messages as any,
+            model: modelName,
+            stream: false,
+            max_completion_tokens: maxTokens,
+            temperature: temperature,
+            top_p: 1
+        });
+
+        // Accedemos al contenido de forma segura
+        const completion = response as any;
+        return completion.choices?.[0]?.message?.content || "";
+
     } catch (error: any) {
-        console.error("Error in getCerebrasResponse:", error);
+        console.error("Error en Cerebras SDK:", error.message || error);
         throw error;
     }
 }
