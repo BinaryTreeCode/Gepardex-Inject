@@ -1,6 +1,8 @@
+import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
-import { app } from '../index.js';
 
-// Eliminamos la config de edge para usar Node.js standard
+const app = new Hono();
+app.get('/api/ping', (c) => c.json({ status: 'ok', msg: 'isolated test' }));
 
 export default handle(app);
+
