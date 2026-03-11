@@ -35,7 +35,7 @@ async function gpt(messages: ChatMessage[]) {
         top_p: 1
     });
 
-    return response.choices[0]?.message?.content || "No se recibió respuesta del modelo.";
+    return (response as any).choices[0]?.message?.content || "No se recibió respuesta del modelo.";
 }
 
 async function llama(messages: ChatMessage[]) {
@@ -48,5 +48,5 @@ async function llama(messages: ChatMessage[]) {
         top_p: 1
     });
 
-    return response.choices[0]?.message?.content || "No se recibió respuesta del modelo.";
+    return (response as any).choices[0]?.message?.content || "No se recibió respuesta del modelo.";
 }
