@@ -8,9 +8,18 @@ import { authMiddleware } from './src/middleware.js';
 const app = new Hono<{ Variables: { userId: number | null } }>();
 
 app.use('/api/*', cors({
-    origin: (origin: string | undefined) => origin ?? '*',
+    origin: (origin) => origin || '*',
     credentials: true,
 }));
+
+// DIAGNÓSTICO: Ver qué peticiones llegan y si traen body
+app.use('/api/*', async (c, next) => {
+    console.log(`[REQ] ${c.req.method} ${c.req.url}`);
+    if (['POST', 'PUT'].includes(c.req.method)) {
+        console.log(`[REQ BODY TYPE] ${c.req.header('content-type')}`);
+    }
+    await next();
+});
 
 // Manejador de errores global para ver qué está pasando en Vercel
 app.onError((err, c) => {

@@ -16,7 +16,7 @@
 
     onMount(async () => {
         try {
-            const respuesta = await fetch("/api/me");
+            const respuesta = await fetch("/api/me", { credentials: "include" });
             const data = await respuesta.json();
             if (data.loggedIn) {
                 isLoggedIn.set(true);
