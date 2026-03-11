@@ -1,9 +1,5 @@
 # Instrucciones para Ejecutar el Proyecto
-
-Este documento detalla los pasos necesarios para configurar y ejecutar el proyecto en un entorno local para el desarrollo y prueba de los sistemas conectados a la nube.
-
-> **Nota importante sobre versiones:** Asegúrate de estar situado en la rama `version-estable-local` (creada a partir del último tag estable). Esto garantiza que el código local funcionará perfectamente. Puedes confirmarlo o cambiarte a ella en tu consola usando el comando: `git checkout version-estable-local`.
-
+ 
 ## 1. Prerrequisitos
 
 Necesitarás instalar **Bun**, que es el motor de ejecución rápido que utiliza este proyecto para el backend y el frontend.
@@ -47,9 +43,14 @@ Una vez que tengas Bun instalado y tu archivo `.env` correctamente configurado:
    ```bash
    bun run dev:full
    ```
+   *Nota: Si estás en VS Code y el comando anterior falla en la terminal por defecto (Bash o similar), cambia tu terminal a **PowerShell** y usa este comando alternativo:*
+   ```powershell
+   Start-Process bun "dev:back" ; Start-Process bun "dev:front"
+   ```
 
 El proyecto estará disponible para su uso local en:
 - **URL Principal:** [http://localhost:5173](http://localhost:5173) (o el puerto que te asigne Vite al iniciar el frontend).
+
 
 ---
 
