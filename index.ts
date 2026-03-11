@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 // Quitamos la importación estática de Bun para evitar errores en Vercel
-import auth from './src/routes/auth.ts';
-import chat from './src/routes/chat.ts';
-import { authMiddleware } from './src/middleware.ts';
+import auth from './src/routes/auth.js';
+import chat from './src/routes/chat.js';
+import { authMiddleware } from './src/middleware.js';
 
 const app = new Hono<{ Variables: { userId: number | null } }>();
 const port = 3000;

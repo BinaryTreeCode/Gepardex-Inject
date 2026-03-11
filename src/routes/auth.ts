@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { db } from '../db/index.ts';
-import { users, sessions } from '../db/schema.ts'; // Añadimos sessions
+import { db } from '../db/index.js';
+import { users, sessions } from '../db/schema.js'; // Añadimos sessions
 import { eq } from 'drizzle-orm';
 import { setCookie, deleteCookie, getCookie } from 'hono/cookie'; // Herramientas para galletas
 // Definimos que el "maletín" (contexto) puede llevar un userId
