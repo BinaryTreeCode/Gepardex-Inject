@@ -70,9 +70,9 @@ chat.post('/mensaje-manager', async (c) => {
                 }, 200);
             } catch (error: any) {
                 console.error("Error al obtener respuesta de Cerebras:", error);
-                return c.json({ 
-                    role: 'assistant', 
-                    content: 'Error al conectar con el servicio de IA: ' + (error.message || 'Error desconocido') 
+                return c.json({
+                    role: 'assistant',
+                    content: 'Error al conectar con el servicio de IA: ' + (error.message || 'Error desconocido')
                 }, 502);
             }
         }
