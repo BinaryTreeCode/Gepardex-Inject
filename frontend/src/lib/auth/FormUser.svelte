@@ -33,6 +33,17 @@
             const data = await respuesta.json();
             mensaje = data.message;
             mensajeColor = respuesta.ok ? colorSuccess : colorError;
+
+            if (respuesta.ok) {
+                isLoggedIn.set(true);
+                isAdmin.set(data.admin || false);
+                username.set(data.username || Username);
+
+                setTimeout(() => {
+                    handleClose();
+                    getChats();
+                }, 1000);
+            }
         } catch (error) {
             mensaje = "Error en la conexión";
             mensajeColor = colorError;

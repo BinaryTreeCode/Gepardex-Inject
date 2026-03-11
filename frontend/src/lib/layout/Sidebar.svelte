@@ -8,9 +8,38 @@
         showLogin,
         showSettings,
         username,
+        isAdmin
     } from "../stores";
+    import { onMount } from "svelte";
 
     let isCollapsed = $state(false);
+
+    onMount(async () => {
+        try {
+            const respuesta = await fetch("/api/me");
+            const data = await respuesta.json();
+            if (data.loggedIn) {
+                isLoggedIn.set(true);
+                username.set(data.username);
+                isAdmin.set(data.admin);
+                getChats();
+            }
+        } catch (error) {
+            console.error("Error al verificar sesión:", error);
+        }
+    });
+
+    async function getChats() {
+        try {
+            const respuesta = await fetch("/api/chats");
+            const dataChats = await respuesta.json();
+            if (Array.isArray(dataChats)) {
+                chats.set(dataChats);
+            }
+        } catch (error) {
+            console.error("Error al obtener chats:", error);
+        }
+    }
 
     function toggleSidebar() {
         isCollapsed = !isCollapsed;

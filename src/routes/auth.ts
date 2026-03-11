@@ -1,44 +1,76 @@
 import { Hono } from 'hono';
 import { db } from '../db';
-import { users } from '../db/schema';
+import { users, sessions } from '../db/schema'; // Añadimos sessions
 import { eq } from 'drizzle-orm';
-
-const auth = new Hono();
-
-export let usuarioActivoId: number | null = null;
+import { setCookie, deleteCookie, getCookie } from 'hono/cookie'; // Herramientas para galletas
+// Definimos que el "maletín" (contexto) puede llevar un userId
+const auth = new Hono<{ Variables: { userId: number | null } }>();
 export let modelState = { current: 'gpt' };
-
-export function setUsuarioActivoId(id: number | null) {
-    usuarioActivoId = id;
+// --- Función ayudante para crear sesiones ---
+async function createNewSession(userId: number) {
+    const sessionId = crypto.randomUUID(); // Un ID aleatorio único y seguro
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // Dura 7 días
+    await db.insert(sessions).values({
+        id: sessionId,
+        userId: userId,
+        expiresAt: expiresAt,
+    });
+    return { sessionId, expiresAt };
 }
 
+
+auth.post('/login', async (c) => {
+    const { email, password } = await c.req.json();
+
+    const results = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const usuario = results[0];
+
+    if (!usuario || usuario.passwordHash !== password) {
+        return c.json({ message: 'Email o contraseña incorrectos' }, 401);
+    }
+
+    // 1. Creamos la sesión en la base de datos
+    const session = await createNewSession(usuario.id);
+
+    // 2. Le damos la "galleta" (cookie) al navegador
+    setCookie(c, "session_id", session.sessionId, {
+        path: "/",
+        httpOnly: true, // Seguridad: el código del chat no puede robarla
+        secure: true,   // Solo viaja por conexión segura
+        sameSite: "Lax",
+        maxAge: 60 * 60 * 24 * 7, // 7 días en segundos
+    });
+
+    return c.json({
+        message: `Bienvenido ${usuario.username}.`,
+        username: usuario.username,
+        admin: usuario.admin
+    }, 200);
+});
+
+
 auth.post('/modelSelect', async (c) => {
-    if (usuarioActivoId === null) {
+    const userId = c.get('userId'); // <--- Sacamos el ID del maletín
+
+    if (!userId) {
         return c.json({ message: 'Debes iniciar sesión' }, 401);
     }
 
-    const quest = await db.select()
-        .from(users)
-        .where(eq(users.id, usuarioActivoId))
-        .limit(1);
-
+    const quest = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     const usuario = quest[0];
 
-    // Validamos que el usuario exista y sea administrador
     if (!usuario || !usuario.admin) {
-        return c.json({ message: 'No tienes permisos para cambiar el modelo' }, 403);
+        return c.json({ message: 'No tienes permisos' }, 403);
     }
 
-    try {
-        const { nuevoModelo } = await c.req.json();
-        modelState.current = nuevoModelo;
-        console.log(modelState.current);
-    } catch (error) {
-        console.error(error);
-    }
+    const { nuevoModelo } = await c.req.json();
+    modelState.current = nuevoModelo;
 
-    return c.json({ message: 'Modelo cambiado correctamente', currentModel: modelState.current }, 200);
+    return c.json({ message: 'Modelo cambiado', currentModel: modelState.current }, 200);
 });
+
+
 
 auth.post('/registro', async (c) => {
     const { username, email, password } = await c.req.json();
@@ -48,13 +80,27 @@ auth.post('/registro', async (c) => {
             username,
             email,
             passwordHash: password
-        });
+        }).returning({ insertedId: users.id });
 
-        usuarioActivoId = Number(result.insertId);
+        if (!result) {
+            throw new Error("No se pudo completar el registro");
+        }
+
+        const session = await createNewSession(result.insertedId);
+
+        setCookie(c, "session_id", session.sessionId, {
+            path: "/",
+            httpOnly: true,
+            secure: true,
+            sameSite: "Lax",
+            maxAge: 60 * 60 * 24 * 7,
+        });
 
         return c.json({
             message: `¡Hola ${username}! Usuario registrado con éxito.`,
-            isError: false
+            username: username,
+            admin: false,
+            loggedIn: true
         }, 201);
     } catch (error) {
         console.error(error);
@@ -62,37 +108,38 @@ auth.post('/registro', async (c) => {
     }
 });
 
-auth.post('/login', async (c) => {
-    const { email, password } = await c.req.json();
 
-    const results = await db.select()
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1);
+auth.get('/me', async (c) => {
+    const userId = c.get('userId');
 
+    if (!userId) {
+        return c.json({ loggedIn: false });
+    }
+
+    const results = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     const usuario = results[0];
 
     if (!usuario) {
-        return c.json({ message: 'Email incorrecto' }, 401);
+        return c.json({ loggedIn: false });
     }
-
-    if (usuario.passwordHash !== password) {
-        return c.json({ message: 'Contraseña incorrecta' }, 401);
-    }
-
-    usuarioActivoId = usuario.id;
 
     return c.json({
-        message: `Bienvenido ${usuario.username}.`,
+        loggedIn: true,
         username: usuario.username,
         admin: usuario.admin
-    }, 200);
+    });
 });
 
 auth.post('/logout', async (c) => {
-    usuarioActivoId = null;
+    const sessionId = getCookie(c, "session_id");
+
+    if (sessionId) {
+        await db.delete(sessions).where(eq(sessions.id, sessionId));
+    }
+    deleteCookie(c, "session_id");
     return c.json({ message: 'Sesión cerrada correctamente' }, 200);
 });
+
 
 
 

@@ -3,27 +3,29 @@ import { db } from '../db';
 import { chats, messages } from '../db/schema';
 import { eq, asc } from 'drizzle-orm';
 import { getCerebrasResponse } from '../cerebras';
-import { usuarioActivoId, modelState } from './auth';
+import { modelState } from './auth';
 
-const chat = new Hono();
-
-let chatActivoId: number | null = null;
+const chat = new Hono<{ Variables: { userId: number | null } }>();
 
 chat.post('/new-chat', async (c) => {
-    if (!usuarioActivoId) {
+    const userId = c.get('userId');
+
+    if (!userId) {
         return c.json({ message: 'Debes iniciar sesión para crear un chat' }, 401);
     }
 
     const [result] = await db.insert(chats).values({
-        userId: usuarioActivoId,
+        userId: userId,
         title: 'Nuevo Chat'
-    });
+    }).returning({ insertedId: chats.id });
 
-    chatActivoId = Number(result.insertId);
+    if (!result) {
+        return c.json({ message: 'No se pudo crear el chat' }, 500);
+    }
 
     return c.json({
         message: `Nuevo chat creado con éxito`,
-        chat: { title: 'Nuevo Chat', id: chatActivoId, userId: usuarioActivoId }
+        chat: { title: 'Nuevo Chat', id: result.insertedId, userId: userId }
     }, 200);
 });
 
@@ -32,18 +34,12 @@ chat.post('/mensaje-manager', async (c) => {
         const body = await c.req.json();
         const { role, content, chatId } = body;
 
-        if (!role || !content) {
-            return c.json({ message: 'El rol y el contenido son obligatorios' }, 400);
-        }
-
-        const currentChatId = chatId || chatActivoId;
-
-        if (!currentChatId) {
-            return c.json({ message: 'Primero debes crear un chat' }, 401);
+        if (!role || !content || !chatId) {
+            return c.json({ message: 'Faltan datos obligatorios' }, 400);
         }
 
         await db.insert(messages).values({
-            chatId: currentChatId,
+            chatId: chatId,
             role: role,
             content: content,
         });
@@ -51,7 +47,7 @@ chat.post('/mensaje-manager', async (c) => {
         if (role === 'user') {
             const results = await db.select()
                 .from(messages)
-                .where(eq(messages.chatId, currentChatId))
+                .where(eq(messages.chatId, chatId))
                 .orderBy(asc(messages.createdAt));
 
             const history = results.map((message) => ({
@@ -63,7 +59,7 @@ chat.post('/mensaje-manager', async (c) => {
                 const aiResponse = await getCerebrasResponse(history, modelState.current);
 
                 await db.insert(messages).values({
-                    chatId: currentChatId,
+                    chatId: chatId,
                     role: 'assistant',
                     content: aiResponse,
                 });
@@ -86,13 +82,15 @@ chat.post('/mensaje-manager', async (c) => {
 });
 
 chat.get('/chats', async (c) => {
-    if (!usuarioActivoId) {
+    const userId = c.get('userId');
+
+    if (!userId) {
         return c.json({ message: 'Debes iniciar sesión' }, 401);
     }
 
     const chatResults = await db.select()
         .from(chats)
-        .where(eq(chats.userId, usuarioActivoId))
+        .where(eq(chats.userId, userId))
         .orderBy(asc(chats.createdAt));
 
     const listChats = chatResults.map((chat) => ({
@@ -105,7 +103,6 @@ chat.get('/chats', async (c) => {
 
 chat.post('/messages', async (c) => {
     const { chatId } = await c.req.json();
-    chatActivoId = chatId;
 
     const results = await db.select()
         .from(messages)

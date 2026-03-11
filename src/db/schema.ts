@@ -1,28 +1,38 @@
 import {
-    mysqlTable,
-    bigint,
+    pgTable,
+    serial,
     varchar,
     text,
     timestamp,
-    mysqlEnum,
-    boolean
-} from 'drizzle-orm/mysql-core';
+    pgEnum,
+    boolean,
+    integer
+} from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 
-export const plans = mysqlTable('plans', {
-    id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement().notNull(),
+export const plans = pgTable('plans', {
+    id: serial('id').primaryKey().notNull(),
     name: varchar('name', { length: 50 }).notNull(),
     description: text('description'),
-    price: bigint('price', { mode: 'number' }).default(0).notNull(),
-    maxMessages: bigint('max_messages', { mode: 'number' }).default(100).notNull(),
+    price: integer('price').default(0).notNull(),
+    maxMessages: integer('max_messages').default(100).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const sessions = pgTable('sessions', {
+    id: varchar('id', { length: 64 }).primaryKey(), // token aleatorio
+    userId: integer('user_id')
+        .notNull()
+        .references(() => users.id, { onDelete: 'cascade' }),
+    expiresAt: timestamp('expires_at').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 
-export const users = mysqlTable('users', {
-    id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement().notNull(),
+export const users = pgTable('users', {
+    id: serial('id').primaryKey().notNull(),
     admin: boolean('admin').default(false).notNull(),
-    planId: bigint('plan_id', { mode: 'number', unsigned: true })
+    planId: integer('plan_id')
         .references(() => plans.id),
 
     username: varchar('username', { length: 50 }).notNull(),
@@ -30,13 +40,13 @@ export const users = mysqlTable('users', {
     passwordHash: varchar('password_hash', { length: 255 }).notNull(),
 
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const chats = mysqlTable('chats', {
-    id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement().notNull(),
+export const chats = pgTable('chats', {
+    id: serial('id').primaryKey().notNull(),
 
-    userId: bigint('user_id', { mode: 'number', unsigned: true })
+    userId: integer('user_id')
         .notNull()
         .references(() => users.id, { onDelete: 'cascade' }),
 
@@ -44,15 +54,16 @@ export const chats = mysqlTable('chats', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const roleEnum = pgEnum('role', ['user', 'assistant', 'system']);
 
-export const messages = mysqlTable('mensajes', {
-    id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement().notNull(),
+export const messages = pgTable('mensajes', {
+    id: serial('id').primaryKey().notNull(),
 
-    chatId: bigint('chat_id', { mode: 'number', unsigned: true })
+    chatId: integer('chat_id')
         .notNull()
         .references(() => chats.id, { onDelete: 'cascade' }),
 
-    role: mysqlEnum('role', ['user', 'assistant', 'system']).notNull(),
+    role: roleEnum('role').notNull(),
 
     content: text('content').notNull(),
 
@@ -62,16 +73,25 @@ export const messages = mysqlTable('mensajes', {
 // Un Usuario tiene muchos Chats y un Plan
 export const usersRelations = relations(users, ({ one, many }) => ({
     chats: many(chats),
+    sessions: many(sessions),
     plan: one(plans, {
         fields: [users.planId],
         references: [plans.id],
     }),
 }));
 
+
+
 export const plansRelations = relations(plans, ({ many }) => ({
     users: many(users),
 }));
 
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+    user: one(users, {
+        fields: [sessions.userId],
+        references: [users.id],
+    }),
+}));
 
 export const chatsRelations = relations(chats, ({ one, many }) => ({
     user: one(users, {

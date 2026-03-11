@@ -20,7 +20,7 @@
     "hono": "^4.11.9",
     "iconv-lite": "^0.7.2",
     "ms": "^2.1.3",
-    "mysql2": "^3.17.2"
+    "postgres": "^3.4.8"
   },
   "scripts": {
     "dev": "bun --watch index.ts",
@@ -28,6 +28,7 @@
     "dev:front": "cd frontend && bun dev",
     "dev:full": "npm-run-all --parallel dev:back dev:front",
     "build:front": "cd frontend && bun run build",
+    "build": "bun run build:front",
     "db:generate": "bunx drizzle-kit generate",
     "db:push": "bunx drizzle-kit push",
     "db:studio": "bunx drizzle-kit studio",
