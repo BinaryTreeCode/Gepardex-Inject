@@ -16,6 +16,7 @@ async function callCerebras(messages: ChatMessage[], model: string, maxTokens: n
         headers: {
             "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
         },
         body: JSON.stringify({
             messages,
