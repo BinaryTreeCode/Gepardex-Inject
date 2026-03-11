@@ -16,6 +16,7 @@ async function callCerebras(messages: ChatMessage[], model: string, maxTokens: n
         headers: {
             "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json",
+            "Accept": "application/json",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
         },
         body: JSON.stringify({
@@ -33,7 +34,7 @@ async function callCerebras(messages: ChatMessage[], model: string, maxTokens: n
         throw new Error(`Cerebras API error (${response.status}): ${errorText}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as any;
     return data.choices?.[0]?.message?.content || "";
 }
 
@@ -45,7 +46,7 @@ export async function getCerebrasResponse(messages: ChatMessage[], model: string
             // Default: gpt (gpt-oss-120b)
             return await callCerebras(messages, 'gpt-oss-120b', 32768, 1);
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error in getCerebrasResponse:", error);
         throw error;
     }
