@@ -1,13 +1,7 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from "./schema.js";
 
-const queryClient = postgres(process.env.DATABASE_URL || "", { 
-    ssl: 'require',
-    max: 1,           // Crítico para serverless
-    prepare: false,   // OBLIGATORIO para el pooler de Neon
-    idle_timeout: 20, // Cerrar conexiones inactivas rápido
-    connect_timeout: 10, // No esperar eternamente si la DB está dormida
-});
+const sql = neon(process.env.DATABASE_URL || "");
 
-export const db = drizzle(queryClient, { schema });
+export const db = drizzle(sql, { schema });
