@@ -68,24 +68,16 @@ chat.post('/mensaje-manager', async (c) => {
                     role: 'assistant',
                     content: String(aiResponse)
                 }, 200);
-            } catch (error: any) {
+            } catch (error) {
                 console.error("Error al obtener respuesta de Cerebras:", error);
-                return c.json({ 
-                    role: 'assistant', 
-                    content: 'Error al conectar con el servicio de IA',
-                    message: error.message || 'Error al conectar con el servicio de IA' 
-                }, 502);
+                return c.json({ role: 'assistant', content: 'Error al conectar con el servicio de IA' }, 502);
             }
         }
 
         return c.json({ role: 'assistant', content: 'Mensaje guardado correctamente' }, 200);
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error en mensaje-manager:", error);
-        return c.json({ 
-            role: 'assistant', 
-            content: 'Error interno del servidor',
-            message: error.message || 'Error interno del servidor'
-        }, 500);
+        return c.json({ role: 'assistant', content: 'Error interno del servidor' }, 500);
     }
 });
 

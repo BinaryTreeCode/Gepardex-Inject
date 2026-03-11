@@ -6,7 +6,7 @@ import { setCookie, deleteCookie, getCookie } from 'hono/cookie';
 import crypto from 'node:crypto'; // Importación explícita para compatibilidad con Node.js y Bun
 // Definimos que el "maletín" (contexto) puede llevar un userId
 const auth = new Hono<{ Variables: { userId: number | null } }>();
-export let modelState = { current: 'llama' };
+export let modelState = { current: 'gpt' };
 // --- Función ayudante para crear sesiones ---
 async function createNewSession(userId: number) {
     const sessionId = crypto.randomUUID(); // Un ID aleatorio único y seguro
