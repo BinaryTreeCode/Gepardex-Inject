@@ -68,9 +68,12 @@ chat.post('/mensaje-manager', async (c) => {
                     role: 'assistant',
                     content: String(aiResponse)
                 }, 200);
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error al obtener respuesta de Cerebras:", error);
-                return c.json({ role: 'assistant', content: 'Error al conectar con el servicio de IA' }, 502);
+                return c.json({ 
+                    role: 'assistant', 
+                    content: 'Error al conectar con el servicio de IA: ' + (error.message || 'Error desconocido') 
+                }, 502);
             }
         }
 
