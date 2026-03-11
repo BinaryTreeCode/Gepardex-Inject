@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { randomUUID } from 'node:crypto'; // Importación explícita para Node.js
 import { db } from '../db';
 import { users, sessions } from '../db/schema'; // Añadimos sessions
 import { eq } from 'drizzle-orm';
@@ -8,7 +9,7 @@ const auth = new Hono<{ Variables: { userId: number | null } }>();
 export let modelState = { current: 'gpt' };
 // --- Función ayudante para crear sesiones ---
 async function createNewSession(userId: number) {
-    const sessionId = crypto.randomUUID(); // Un ID aleatorio único y seguro
+    const sessionId = randomUUID(); // Usamos la función importada
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // Dura 7 días
     await db.insert(sessions).values({
