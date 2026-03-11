@@ -9,6 +9,8 @@ const port = 3000;
 
 app.use('/api/*', authMiddleware);
 
+app.get('/api/ping', (c) => c.json({ status: 'ok', message: 'Hono is alive' }));
+
 app.route('/api', auth);
 app.route('/api', chat);
 
