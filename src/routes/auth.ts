@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
 import { db } from '../db/index.js';
-import { users, sessions } from '../db/schema.js'; // Añadimos sessions
+import { users, sessions } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
-import { setCookie, deleteCookie, getCookie } from 'hono/cookie'; // Herramientas para galletas
+import { setCookie, deleteCookie, getCookie } from 'hono/cookie';
+import crypto from 'node:crypto'; // Importación explícita para compatibilidad con Node.js y Bun
 // Definimos que el "maletín" (contexto) puede llevar un userId
 const auth = new Hono<{ Variables: { userId: number | null } }>();
 export let modelState = { current: 'gpt' };
@@ -35,10 +36,11 @@ auth.post('/login', async (c) => {
     const session = await createNewSession(usuario.id);
 
     // 2. Le damos la "galleta" (cookie) al navegador
+    const isProd = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
     setCookie(c, "session_id", session.sessionId, {
         path: "/",
         httpOnly: true, // Seguridad: el código del chat no puede robarla
-        secure: true,   // Solo viaja por conexión segura
+        secure: isProd,   // Solo viaja por conexión segura en producción
         sameSite: "Lax",
         maxAge: 60 * 60 * 24 * 7, // 7 días en segundos
     });
@@ -90,10 +92,11 @@ auth.post('/registro', async (c) => {
 
         const session = await createNewSession(result.insertedId);
 
+        const isProd = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
         setCookie(c, "session_id", session.sessionId, {
             path: "/",
             httpOnly: true,
-            secure: true,
+            secure: isProd,
             sameSite: "Lax",
             maxAge: 60 * 60 * 24 * 7,
         });
