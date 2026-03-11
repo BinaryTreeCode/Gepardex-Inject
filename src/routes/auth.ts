@@ -1,24 +1,15 @@
 import { Hono } from 'hono';
-import { db } from '../db/index';
-import { users, sessions } from '../db/schema';
+import { db } from '../db/index.js';
+import { users, sessions } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { setCookie, deleteCookie, getCookie } from 'hono/cookie';
-
-// Función para generar UUID compatible con Edge y Node
-function generateUUID(): string {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-        return crypto.randomUUID();
-    }
-    return Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
-}
-
+import crypto from 'node:crypto'; // Importación explícita para compatibilidad con Node.js y Bun
 // Definimos que el "maletín" (contexto) puede llevar un userId
 const auth = new Hono<{ Variables: { userId: number | null } }>();
-export let modelState = { current: 'gpt' };
-
+export let modelState = { current: 'llama' };
 // --- Función ayudante para crear sesiones ---
 async function createNewSession(userId: number) {
-    const sessionId = generateUUID(); 
+    const sessionId = crypto.randomUUID(); // Un ID aleatorio único y seguro
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // Dura 7 días
     await db.insert(sessions).values({
@@ -34,14 +25,14 @@ auth.post('/login', async (c) => {
     console.log("DEBUG: Iniciando POST /api/login");
     let email, password;
     try {
-        console.log("DEBUG: Intentando leer body...");
+        console.log("DEBUG: Antes de c.req.json()");
         const body = await c.req.json();
-        console.log("DEBUG: Body recibido con éxito:", body);
+        console.log("DEBUG: Después de c.req.json()", body);
         email = body.email;
         password = body.password;
     } catch (e: any) {
-        console.error("DEBUG: Error crítico leyendo body:", e.message);
-        return c.json({ message: 'Error en el formato de los datos enviados' }, 400);
+        console.error("DEBUG: Error parseando json", e.message);
+        return c.json({ message: 'Error parseando cuerpo' }, 400);
     }
 
     const results = await db.select().from(users).where(eq(users.email, email)).limit(1);

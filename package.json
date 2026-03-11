@@ -33,7 +33,7 @@
     "dev:front": "cd frontend && bun dev",
     "dev:full": "npm-run-all --parallel dev:back dev:front",
     "build:front": "cd frontend && bun run build",
-    "build": "cd frontend && bun install && bun run build",
+    "build": "bun run --filter frontend build",
     "db:generate": "bunx drizzle-kit generate",
     "db:push": "bunx drizzle-kit push",
     "db:studio": "bunx drizzle-kit studio",

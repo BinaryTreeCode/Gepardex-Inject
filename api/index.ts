@@ -1,8 +1,10 @@
-import { handle } from 'hono/vercel';
+import { handle } from '@hono/node-server/vercel';
 import { app } from '../index';
 
 export const config = {
-    runtime: 'edge'
+    api: {
+        bodyParser: false,
+    },
 };
 
 export default handle(app);

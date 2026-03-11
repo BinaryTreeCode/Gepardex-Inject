@@ -24,7 +24,6 @@
             const respuesta = await fetch("/api/registro", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                credentials: "include",
                 body: JSON.stringify({
                     username: Username,
                     email: Email,
@@ -61,7 +60,6 @@
             const respuesta = await fetch("/api/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                credentials: "include",
                 body: JSON.stringify({
                     email: Email,
                     password: Password,

@@ -1,28 +1,26 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-
-console.log("BACKEND: Iniciando app...");
 // Quitamos la importación estática de Bun para evitar errores en Vercel
-import auth from './src/routes/auth';
-import chat from './src/routes/chat';
-import { authMiddleware } from './src/middleware';
+import auth from './src/routes/auth.js';
+import chat from './src/routes/chat.js';
+import { authMiddleware } from './src/middleware.js';
 
-const app = new Hono<{ Variables: { userId: number | null } }>().basePath('/api');
+const app = new Hono<{ Variables: { userId: number | null } }>();
 
-app.use('*', cors({
-    origin: (origin) => origin || '*',
+app.use('/api/*', cors({
+    origin: (origin: string | undefined) => origin ?? '*',
     credentials: true,
 }));
-
 const port = 3000;
-app.get('/ping', (c) => c.json({ status: 'ok', message: 'Hono is alive on Edge' }));
 
-app.use('*', authMiddleware);
+app.get('/api/ping', (c) => c.json({ status: 'ok', message: 'Hono is alive' }));
 
-app.get('/db-test', async (c) => {
+app.use('/api/*', authMiddleware);
+
+app.get('/api/db-test', async (c) => {
     try {
-        const { users } = await import('./src/db/schema');
-        const { db } = await import('./src/db/index');
+        const { users } = await import('./src/db/schema.js');
+        const { db } = await import('./src/db/index.js');
         const res = await db.select().from(users).limit(1);
         return c.json({ status: 'ok', usersFound: res.length });
     } catch (e: any) {
@@ -30,9 +28,10 @@ app.get('/db-test', async (c) => {
     }
 });
 
-app.route('', auth);
-app.route('', chat);
+app.route('/api', auth);
+app.route('/api', chat);
 
+// Serving de estáticos removido para delegar totalmente en Vercel y Vite (sin top-level await)
 if (process.env.BUN_ENV !== 'production' && !process.env.VERCEL) {
     console.log(`Server running at http://localhost:${port}`);
 }

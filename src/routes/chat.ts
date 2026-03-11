@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
-import { db } from '../db/index';
-import { chats, messages } from '../db/schema';
+import { db } from '../db/index.js';
+import { chats, messages } from '../db/schema.js';
 import { eq, asc } from 'drizzle-orm';
-import { getCerebrasResponse } from '../cerebras';
-import { modelState } from './auth';
+import { getCerebrasResponse } from '../cerebras.js';
+import { modelState } from './auth.js';
 
 const chat = new Hono<{ Variables: { userId: number | null } }>();
 
@@ -68,16 +68,24 @@ chat.post('/mensaje-manager', async (c) => {
                     role: 'assistant',
                     content: String(aiResponse)
                 }, 200);
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error al obtener respuesta de Cerebras:", error);
-                return c.json({ role: 'assistant', content: 'Error al conectar con el servicio de IA' }, 502);
+                return c.json({ 
+                    role: 'assistant', 
+                    content: 'Error al conectar con el servicio de IA',
+                    message: error.message || 'Error al conectar con el servicio de IA' 
+                }, 502);
             }
         }
 
         return c.json({ role: 'assistant', content: 'Mensaje guardado correctamente' }, 200);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error en mensaje-manager:", error);
-        return c.json({ role: 'assistant', content: 'Error interno del servidor' }, 500);
+        return c.json({ 
+            role: 'assistant', 
+            content: 'Error interno del servidor',
+            message: error.message || 'Error interno del servidor'
+        }, 500);
     }
 });
 
