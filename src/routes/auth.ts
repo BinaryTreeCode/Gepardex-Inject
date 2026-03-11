@@ -21,6 +21,7 @@ async function createNewSession(userId: number) {
 
 
 auth.post('/login', async (c) => {
+    console.log("DEBUG: Iniciando POST /api/login");
     const { email, password } = await c.req.json();
 
     const results = await db.select().from(users).where(eq(users.email, email)).limit(1);
@@ -73,6 +74,7 @@ auth.post('/modelSelect', async (c) => {
 
 
 auth.post('/registro', async (c) => {
+    console.log("DEBUG: Iniciando POST /api/registro");
     const { username, email, password } = await c.req.json();
 
     try {
