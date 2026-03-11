@@ -19,7 +19,8 @@
         message = "";
 
         try {
-            const respuesta = await fetch("/api/mensaje-manager", {
+            // 1. Guardar mensaje del usuario en el Backend
+            const respuestaBackend = await fetch("/api/mensaje-manager", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -29,23 +30,63 @@
                 }),
             });
 
-            if (respuesta.ok) {
-                const data = await respuesta.json();
-                messages.update((list) => [...list, data]);
-            } else {
-                const errorData = await respuesta.json();
-                console.error("Error en el servidor:", errorData.message);
-                // Opcional: mostrar error en el chat
-                messages.update((list) => [
-                    ...list,
-                    {
-                        role: "assistant",
-                        content: `Error: ${errorData.message || "Error desconocido"}`,
-                    },
-                ]);
+            if (!respuestaBackend.ok) {
+                throw new Error("Error al guardar el mensaje del usuario");
             }
-        } catch (error) {
-            console.error("Error al enviar mensaje:", error);
+
+            // 2. Llamada directa a Cerebras desde el Navegador (Bypass Cloudflare)
+            // IMPORTANTE: Asegúrate de tener CEREBRAS_API_KEY en tu .env de Vite
+            const apiKey = import.meta.env.VITE_CEREBRAS_API_KEY; 
+            
+            // Creamos el historial para la IA
+            const currentHistory = get(messages);
+
+            const aiResponseRaw = await fetch("https://api.cerebras.ai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    model: "llama3.1-8b",
+                    messages: currentHistory,
+                    max_completion_tokens: 2048,
+                    stream: false
+                }),
+            });
+
+            if (!aiResponseRaw.ok) {
+                const errorData = await aiResponseRaw.text();
+                throw new Error(`Error en Cerebras: ${errorData}`);
+            }
+
+            const aiData = await aiResponseRaw.json();
+            const aiContent = aiData.choices[0].message.content;
+
+            // 3. Mostrar respuesta en el chat
+            const assistantMessage = { role: "assistant" as const, content: aiContent };
+            messages.update((list) => [...list, assistantMessage]);
+
+            // 4. Guardar respuesta de la IA en el Backend para persistencia
+            await fetch("/api/mensaje-manager", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    role: "assistant",
+                    content: aiContent,
+                    chatId: chatId,
+                }),
+            });
+
+        } catch (error: any) {
+            console.error("Error en el flujo de chat:", error);
+            messages.update((list) => [
+                ...list,
+                {
+                    role: "assistant",
+                    content: `Error: ${error.message || "Error al procesar la respuesta"}`,
+                },
+            ]);
         }
     }
 </script>

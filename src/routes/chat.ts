@@ -38,49 +38,22 @@ chat.post('/mensaje-manager', async (c) => {
             return c.json({ message: 'Faltan datos obligatorios' }, 400);
         }
 
+        // Guardamos el mensaje (sea de usuario o de asistente enviado por el frontend)
         await db.insert(messages).values({
             chatId: chatId,
             role: role,
             content: content,
         });
 
-        if (role === 'user') {
-            const results = await db.select()
-                .from(messages)
-                .where(eq(messages.chatId, chatId))
-                .orderBy(asc(messages.createdAt));
+        return c.json({ 
+            message: 'Mensaje guardado correctamente',
+            role: role,
+            content: content 
+        }, 200);
 
-            const history = results.map((message) => ({
-                role: message.role as "user" | "assistant" | "system",
-                content: message.content,
-            }));
-
-            try {
-                const aiResponse = await getCerebrasResponse(history, modelState.current);
-
-                await db.insert(messages).values({
-                    chatId: chatId,
-                    role: 'assistant',
-                    content: aiResponse,
-                });
-
-                return c.json({
-                    role: 'assistant',
-                    content: String(aiResponse)
-                }, 200);
-            } catch (error: any) {
-                console.error("Error al obtener respuesta de Cerebras:", error);
-                return c.json({
-                    role: 'assistant',
-                    content: 'Error al conectar con el servicio de IA: ' + (error.message || 'Error desconocido')
-                }, 502);
-            }
-        }
-
-        return c.json({ role: 'assistant', content: 'Mensaje guardado correctamente' }, 200);
     } catch (error) {
         console.error("Error en mensaje-manager:", error);
-        return c.json({ role: 'assistant', content: 'Error interno del servidor' }, 500);
+        return c.json({ message: 'Error interno del servidor' }, 500);
     }
 });
 
