@@ -23,7 +23,17 @@ async function createNewSession(userId: number) {
 
 auth.post('/login', async (c) => {
     console.log("DEBUG: Iniciando POST /api/login");
-    const { email, password } = await c.req.json();
+    let email, password;
+    try {
+        console.log("DEBUG: Antes de c.req.json()");
+        const body = await c.req.json();
+        console.log("DEBUG: Después de c.req.json()", body);
+        email = body.email;
+        password = body.password;
+    } catch (e: any) {
+        console.error("DEBUG: Error parseando json", e.message);
+        return c.json({ message: 'Error parseando cuerpo' }, 400);
+    }
 
     const results = await db.select().from(users).where(eq(users.email, email)).limit(1);
     const usuario = results[0];
@@ -77,7 +87,18 @@ auth.post('/modelSelect', async (c) => {
 
 auth.post('/registro', async (c) => {
     console.log("DEBUG: Iniciando POST /api/registro");
-    const { username, email, password } = await c.req.json();
+    let username, email, password;
+    try {
+        console.log("DEBUG: Antes de c.req.json() en registro");
+        const body = await c.req.json();
+        console.log("DEBUG: Después de c.req.json() en registro", body);
+        username = body.username;
+        email = body.email;
+        password = body.password;
+    } catch (e: any) {
+        console.error("DEBUG: Error parseando json en registro", e.message);
+        return c.json({ message: 'Error parseando cuerpo' }, 400);
+    }
 
     try {
         const [result] = await db.insert(users).values({
