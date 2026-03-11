@@ -3,13 +3,22 @@ import { db } from '../db/index.js';
 import { users, sessions } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { setCookie, deleteCookie, getCookie } from 'hono/cookie';
-import crypto from 'node:crypto'; // Importación explícita para compatibilidad con Node.js y Bun
+
+// Función para generar UUID compatible con Edge y Node
+function generateUUID(): string {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+}
+
 // Definimos que el "maletín" (contexto) puede llevar un userId
 const auth = new Hono<{ Variables: { userId: number | null } }>();
 export let modelState = { current: 'gpt' };
+
 // --- Función ayudante para crear sesiones ---
 async function createNewSession(userId: number) {
-    const sessionId = crypto.randomUUID(); // Un ID aleatorio único y seguro
+    const sessionId = generateUUID(); 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // Dura 7 días
     await db.insert(sessions).values({
