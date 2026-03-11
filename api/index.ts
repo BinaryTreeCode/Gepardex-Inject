@@ -1,8 +1,6 @@
 import { handle } from 'hono/vercel';
 import { app } from '../index';
 
-export const config = {
-  runtime: 'edge',
-};
+// Eliminamos la config de edge para usar Node.js standard
 
 export default handle(app);

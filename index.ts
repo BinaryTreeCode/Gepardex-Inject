@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { serveStatic } from 'hono/bun';
+// Quitamos la importación estática de Bun para evitar errores en Vercel
 import auth from './src/routes/auth';
 import chat from './src/routes/chat';
 import { authMiddleware } from './src/middleware';
@@ -13,6 +13,8 @@ app.route('/api', auth);
 app.route('/api', chat);
 
 if (!process.env.VERCEL) {
+    // Solo cargamos serveStatic si no estamos en Vercel
+    const { serveStatic } = await import('hono/bun');
     app.use('/*', serveStatic({ root: './dist' }));
     app.get('/*', serveStatic({ path: './dist/index.html' }));
 }
