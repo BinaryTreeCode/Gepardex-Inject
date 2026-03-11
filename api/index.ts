@@ -1,7 +1,12 @@
-import { handle } from '@hono/node-server/vercel';
+import { handle } from 'hono/vercel';
 import { app } from '../index.js';
 
-// El adapter handle() se encarga de procesar la request de Node/Vercel a Hono.
+export const config = {
+    api: {
+        bodyParser: false,
+        externalResolver: true,
+    },
+};
 
 export default handle(app);
 

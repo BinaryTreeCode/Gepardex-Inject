@@ -25,14 +25,14 @@ auth.post('/login', async (c) => {
     console.log("DEBUG: Iniciando POST /api/login");
     let email, password;
     try {
-        console.log("DEBUG: Antes de c.req.json()");
+        console.log("DEBUG: Intentando leer body...");
         const body = await c.req.json();
-        console.log("DEBUG: Después de c.req.json()", body);
+        console.log("DEBUG: Body recibido con éxito:", body);
         email = body.email;
         password = body.password;
     } catch (e: any) {
-        console.error("DEBUG: Error parseando json", e.message);
-        return c.json({ message: 'Error parseando cuerpo' }, 400);
+        console.error("DEBUG: Error crítico leyendo body:", e.message);
+        return c.json({ message: 'Error en el formato de los datos enviados' }, 400);
     }
 
     const results = await db.select().from(users).where(eq(users.email, email)).limit(1);
