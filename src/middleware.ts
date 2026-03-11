@@ -1,7 +1,7 @@
 import type { Context, Next } from "hono";
 import { getCookie } from "hono/cookie";
-import { db } from "./db";
-import { sessions } from "./db/schema";
+import { db } from "./db/index.ts";
+import { sessions } from "./db/schema.ts";
 import { eq } from "drizzle-orm";
 
 /**

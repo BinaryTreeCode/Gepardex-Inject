@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
-import { db } from '../db';
-import { chats, messages } from '../db/schema';
+import { db } from '../db/index.ts';
+import { chats, messages } from '../db/schema.ts';
 import { eq, asc } from 'drizzle-orm';
-import { getCerebrasResponse } from '../cerebras';
-import { modelState } from './auth';
+import { getCerebrasResponse } from '../cerebras.ts';
+import { modelState } from './auth.ts';
 
 const chat = new Hono<{ Variables: { userId: number | null } }>();
 

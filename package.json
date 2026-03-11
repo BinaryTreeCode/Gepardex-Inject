@@ -23,8 +23,8 @@
     "postgres": "^3.4.8"
   },
   "scripts": {
-    "dev": "bun --watch server-bun.ts",
-    "dev:back": "bun --watch server-bun.ts",
+    "dev": "bun --watch index.ts",
+    "dev:back": "bun --watch index.ts",
     "dev:front": "cd frontend && bun dev",
     "dev:full": "npm-run-all --parallel dev:back dev:front",
     "build:front": "cd frontend && bun run build",
