@@ -25,13 +25,7 @@ app.get('/api/db-test', async (c) => {
 app.route('/api', auth);
 app.route('/api', chat);
 
-if (!process.env.VERCEL) {
-    // Solo cargamos serveStatic si no estamos en Vercel
-    const { serveStatic } = await import('hono/bun');
-    app.use('/*', serveStatic({ root: './public' }));
-    app.get('/*', serveStatic({ path: './public/index.html' }));
-}
-
+// Serving de estáticos removido para delegar totalmente en Vercel y Vite (sin top-level await)
 if (process.env.BUN_ENV !== 'production' && !process.env.VERCEL) {
     console.log(`Server running at http://localhost:${port}`);
 }
