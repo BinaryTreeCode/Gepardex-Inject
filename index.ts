@@ -11,6 +11,17 @@ app.use('/api/*', cors({
     origin: (origin: string | undefined) => origin ?? '*',
     credentials: true,
 }));
+
+// Manejador de errores global para ver qué está pasando en Vercel
+app.onError((err, c) => {
+    console.error('GLOBAL ERROR:', err);
+    return c.json({ 
+        status: 'error', 
+        message: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    }, 500);
+});
+
 const port = 3000;
 
 app.get('/api/ping', (c) => c.json({ status: 'ok', message: 'Hono is alive' }));
