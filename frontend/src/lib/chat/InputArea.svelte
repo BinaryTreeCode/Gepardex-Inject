@@ -1,12 +1,18 @@
 <script lang="ts">
     let message = "";
-    import { messages, selectedChatId } from "../stores";
+    import { messages, selectedChatId, selectedModel } from "../stores";
     import { get } from "svelte/store";
+
+    // API Key de Cerebras expuesta para evitar problemas de env en Vite/Vercel
+    // Se recomienda proteger esto habilitando "Allowed Origins" en cloud.cerebras.ai
+    const CEREBRAS_API_KEY = "csk-wj29kkp9v8t359xkx4nr5wx54cye4chm2rw9cdwjc39yjc52";
 
     async function handleSubmit() {
         if (!message.trim()) return;
 
         const chatId = get(selectedChatId);
+        const currentModel = get(selectedModel);
+
         if (!chatId) {
             console.error("No hay un chat seleccionado");
             return;
@@ -35,8 +41,9 @@
             }
 
             // 2. Llamada directa a Cerebras desde el Navegador (Bypass Cloudflare)
-            // IMPORTANTE: Asegúrate de tener CEREBRAS_API_KEY en tu .env de Vite
-            const apiKey = import.meta.env.VITE_CEREBRAS_API_KEY; 
+            const isLlama = currentModel === "llama";
+            const modelName = isLlama ? "llama3.1-8b" : "gpt-oss-120b";
+            const maxCompletionTokens = isLlama ? 2048 : 32768;
             
             // Creamos el historial para la IA
             const currentHistory = get(messages);
@@ -44,13 +51,13 @@
             const aiResponseRaw = await fetch("https://api.cerebras.ai/v1/chat/completions", {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${apiKey}`,
+                    "Authorization": `Bearer ${CEREBRAS_API_KEY}`,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    model: "llama3.1-8b",
+                    model: modelName,
                     messages: currentHistory,
-                    max_completion_tokens: 2048,
+                    max_completion_tokens: maxCompletionTokens,
                     stream: false
                 }),
             });

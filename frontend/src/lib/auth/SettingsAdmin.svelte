@@ -8,8 +8,10 @@
         chats,
         messages,
         selectedChatId,
+        selectedModel
     } from "../stores";
-    let model = $state("gpt");
+    import { get } from "svelte/store";
+    let model = $state(get(selectedModel));
 
     let mensaje = $state("");
     let mensajeColor = $state("black");
@@ -42,6 +44,7 @@
             const data = await respuesta.json();
             if (respuesta.ok) {
                 model = data.currentModel;
+                selectedModel.set(data.currentModel);
                 mensajeColor = colorSuccess;
             } else {
                 mensajeColor = colorError;

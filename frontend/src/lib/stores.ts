@@ -20,7 +20,7 @@ export const isAdmin = writable(false);
 export const username = writable('perfil');
 
 export const selectedChatId = writable<number | null>(null);
-
+export const selectedModel = writable<string>('gpt');
 
 export const showLogin = writable(false);
 export const showSettings = writable(false);
