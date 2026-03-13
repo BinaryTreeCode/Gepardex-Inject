@@ -1,8 +1,7 @@
 <script lang="ts">
     import MessageBubble from "./MessageBubble.svelte";
     import InputArea from "./InputArea.svelte";
-    import { isLoggedIn, showLogin } from "../stores";
-    import { messages } from "../stores";
+    import { isLoggedIn, showLogin, messages } from "../stores";
 </script>
 
 <section class="chat-area">

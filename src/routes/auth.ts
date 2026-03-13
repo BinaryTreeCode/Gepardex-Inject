@@ -12,11 +12,9 @@ function generateUUID(): string {
     return Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
 }
 
-// Definimos que el "maletín" (contexto) puede llevar un userId
 const auth = new Hono<{ Variables: { userId: number | null } }>();
 export let modelState = { current: 'gpt' };
 
-// --- Función ayudante para crear sesiones ---
 async function createNewSession(userId: number) {
     const sessionId = generateUUID(); 
     const expiresAt = new Date();
@@ -31,16 +29,12 @@ async function createNewSession(userId: number) {
 
 
 auth.post('/login', async (c) => {
-    console.log("DEBUG: Iniciando POST /api/login");
     let email, password;
     try {
-        console.log("DEBUG: Intentando leer body...");
         const body = await c.req.json();
-        console.log("DEBUG: Body recibido con éxito:", body);
         email = body.email;
         password = body.password;
     } catch (e: any) {
-        console.error("DEBUG: Error crítico leyendo body:", e.message);
         return c.json({ message: 'Error en el formato de los datos enviados' }, 400);
     }
 
@@ -51,15 +45,13 @@ auth.post('/login', async (c) => {
         return c.json({ message: 'Email o contraseña incorrectos' }, 401);
     }
 
-    // 1. Creamos la sesión en la base de datos
     const session = await createNewSession(usuario.id);
 
-    // 2. Le damos la "galleta" (cookie) al navegador
     const isProd = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
     setCookie(c, "session_id", session.sessionId, {
         path: "/",
-        httpOnly: true, // Seguridad: el código del chat no puede robarla
-        secure: isProd,   // Solo viaja por conexión segura en producción
+        httpOnly: true,
+        secure: isProd,
         sameSite: "Lax",
         maxAge: 60 * 60 * 24 * 7, // 7 días en segundos
     });
@@ -73,7 +65,7 @@ auth.post('/login', async (c) => {
 
 
 auth.post('/modelSelect', async (c) => {
-    const userId = c.get('userId'); // <--- Sacamos el ID del maletín
+    const userId = c.get('userId');
 
     if (!userId) {
         return c.json({ message: 'Debes iniciar sesión' }, 401);
@@ -95,17 +87,13 @@ auth.post('/modelSelect', async (c) => {
 
 
 auth.post('/registro', async (c) => {
-    console.log("DEBUG: Iniciando POST /api/registro");
     let username, email, password;
     try {
-        console.log("DEBUG: Antes de c.req.json() en registro");
         const body = await c.req.json();
-        console.log("DEBUG: Después de c.req.json() en registro", body);
         username = body.username;
         email = body.email;
         password = body.password;
     } catch (e: any) {
-        console.error("DEBUG: Error parseando json en registro", e.message);
         return c.json({ message: 'Error parseando cuerpo' }, 400);
     }
 
@@ -174,9 +162,5 @@ auth.post('/logout', async (c) => {
     deleteCookie(c, "session_id");
     return c.json({ message: 'Sesión cerrada correctamente' }, 200);
 });
-
-
-
-
 
 export default auth;

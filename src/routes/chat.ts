@@ -2,8 +2,6 @@ import { Hono } from 'hono';
 import { db } from '../db/index';
 import { chats, messages } from '../db/schema';
 import { eq, asc } from 'drizzle-orm';
-import { getCerebrasResponse } from '../cerebras';
-import { modelState } from './auth';
 
 const chat = new Hono<{ Variables: { userId: number | null } }>();
 

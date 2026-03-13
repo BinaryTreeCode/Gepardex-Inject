@@ -117,22 +117,22 @@
             <main class="form-content">
                 <section class="input-group">
                     <div class="input-group-content">
-                        <legend>gpt oss 120b</legend>
-                        <p>El modelo mas rapido del mundo</p>
+                        <legend>qwen 3 235b</legend>
+                        <p>El doble de inteligente que llama</p>
                         <ul>
-                            <li>inteligencia media</li>
-                            <li>3000 T/S</li>
+                            <li>Inteligencia Superior</li>
+                            <li>1400 T/S</li>
                         </ul>
                     </div>
                     <button
                         type="button"
                         class="input-group-button"
-                        class:active={model === "gpt"}
-                        onclick={() => modelSelected("gpt")}
+                        class:active={model === "qwen"}
+                        onclick={() => modelSelected("qwen")}
                     >
-                        {#if model === "gpt"}
+                        {#if model === "qwen"}
                             modelo activo
-                        {:else}
+                         {:else}
                             modelo desactivado
                         {/if}
                     </button>

@@ -12,7 +12,7 @@ export async function getCerebrasResponse(messages: ChatMessage[], model: string
     }
 
     const isLlama = model === "llama";
-    const modelName = isLlama ? "llama3.1-8b" : "gpt-oss-120b";
+    const modelName = isLlama ? "llama3.1-8b" : "qwen-3-235b-a22b-instruct-2507";
     const maxCompletionTokens = isLlama ? 2048 : 32768;
     const temperature = isLlama ? 0.2 : 1;
 

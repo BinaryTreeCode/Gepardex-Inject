@@ -20,7 +20,7 @@ export const plans = pgTable('plans', {
 });
 
 export const sessions = pgTable('sessions', {
-    id: varchar('id', { length: 64 }).primaryKey(), // token aleatorio
+    id: varchar('id', { length: 64 }).primaryKey(),
     userId: integer('user_id')
         .notNull()
         .references(() => users.id, { onDelete: 'cascade' }),
@@ -70,7 +70,6 @@ export const messages = pgTable('mensajes', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// Un Usuario tiene muchos Chats y un Plan
 export const usersRelations = relations(users, ({ one, many }) => ({
     chats: many(chats),
     sessions: many(sessions),

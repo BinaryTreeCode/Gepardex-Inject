@@ -25,7 +25,6 @@
         message = "";
 
         try {
-            // 1. Guardar mensaje del usuario en el Backend
             const respuestaBackend = await fetch("/api/mensaje-manager", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -40,12 +39,11 @@
                 throw new Error("Error al guardar el mensaje del usuario");
             }
 
-            // 2. Llamada directa a Cerebras desde el Navegador (Bypass Cloudflare)
+            // Llamada directa a Cerebras
             const isLlama = currentModel === "llama";
-            const modelName = isLlama ? "llama3.1-8b" : "gpt-oss-120b";
+            const modelName = isLlama ? "llama3.1-8b" : "qwen-3-235b-a22b-instruct-2507";
             const maxCompletionTokens = isLlama ? 2048 : 32768;
             
-            // Creamos el historial para la IA
             const currentHistory = get(messages);
 
             const aiResponseRaw = await fetch("https://api.cerebras.ai/v1/chat/completions", {
@@ -70,11 +68,9 @@
             const aiData = await aiResponseRaw.json();
             const aiContent = aiData.choices[0].message.content;
 
-            // 3. Mostrar respuesta en el chat
             const assistantMessage = { role: "assistant" as const, content: aiContent };
             messages.update((list) => [...list, assistantMessage]);
 
-            // 4. Guardar respuesta de la IA en el Backend para persistencia
             await fetch("/api/mensaje-manager", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

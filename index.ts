@@ -1,8 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 
-console.log("BACKEND: Iniciando app...");
-// Quitamos la importación estática de Bun para evitar errores en Vercel
 import auth from './src/routes/auth';
 import chat from './src/routes/chat';
 import { authMiddleware } from './src/middleware';
@@ -19,16 +17,6 @@ app.get('/ping', (c) => c.json({ status: 'ok', message: 'Hono is alive on Edge' 
 
 app.use('*', authMiddleware);
 
-app.get('/db-test', async (c) => {
-    try {
-        const { users } = await import('./src/db/schema');
-        const { db } = await import('./src/db/index');
-        const res = await db.select().from(users).limit(1);
-        return c.json({ status: 'ok', usersFound: res.length });
-    } catch (e: any) {
-        return c.json({ status: 'error', message: e.message }, 500);
-    }
-});
 
 app.route('', auth);
 app.route('', chat);
